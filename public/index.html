@@ -14,9 +14,12 @@
 <body>
   <div class="wrapper">
     <h1>clueless-fb</h1>
-    <div id="table-top">
-      <p><a id="bookmarklet" href="#" class="hidden">cl-fb</a></p>
-      <p><input id="pubkey" type="text" class="hidden"></p>
+    <div id="spinner">
+      <!-- css-animated activity indicator -->
+    </div>
+    <div id="results" class="hidden">
+      <p><a id="bookmarklet" href="#" class="draggable">cl-fb</a></p>
+      <p><input id="pubkey" type="text"></p>
     </div>
     <div id="instructions">
       <ol>
@@ -62,31 +65,33 @@
 
       // Build a fresh new bookmarklet.
       $.get('/clueless-fb.js', function(data) {
-        var source, bits, key, $a, $pubkey;
+        var source, bits, key, $spinner, $results, $a, $pubkey;
 
+        // Use a shorter key size for local development.
         bits = (window.location.hostname === 'localhost')? 1024 : 2048;
 
+        // Generate a secure public-private key pair. Refer to the README for
+        // for documentation on the chosen key generation parameter values.
         key = keygen({
           bits: bits, // 2048 recommended
           e: '10001'  // hex ~> 65537
         });
 
+        // Fill out the bookmarklet template.
         source = data.replace('<private-key>', key.n + '|' + key.d);
 
         // Create a bookmark link, which can be dragged to the bookmarks bar.
         $a = $('#bookmarklet');
-        $a.attr({
-          href: bookmarkify(source),
-          class: 'draggable'
-        });
+        $a.attr({href: bookmarkify(source)});
 
         // Present the public key, for copy-pasting into place…
         $pubkey = $('#pubkey');
         $pubkey.val(key.n + '|' + key.e);
         $pubkey.on('click', function() { this.select(); });
-        $pubkey.attr({
-          class: ''
-        });
+
+        // Done. Show the results, hide the spinner.
+        $spinner = $('#spinner').addClass('hidden');
+        $results = $('#results').removeClass('hidden');
       });
     });
   </script>
