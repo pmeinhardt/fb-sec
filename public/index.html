@@ -62,28 +62,27 @@
 
       // Build a fresh new bookmarklet.
       $.get('/clueless-fb.js', function(data) {
-        var template, bits, key, $a, $pubkey;
+        var source, bits, key, $a, $pubkey;
 
         bits = (window.location.hostname === 'localhost')? 1024 : 2048;
 
-        template = data;
         key = keygen({
           bits: bits, // 2048 recommended
           e: '10001'  // hex ~> 65537
         });
 
-        console.log(key);
+        source = data.replace('<private-key>', key.n + '|' + key.d);
 
         // Create a bookmark link, which can be dragged to the bookmarks bar.
         $a = $('a#bookmarklet');
         $a.attr({
-          href: bookmarkify(template),
+          href: bookmarkify(source),
           class: 'draggable'
         });
 
         // Present the public key, for copy-pasting into place…
         $pubkey = $('textarea#pubkey');
-        // $pubkey.val(key.);
+        $pubkey.val(key.n + '|' + key.e);
         $pubkey.attr({
           class: ''
         });
