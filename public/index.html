@@ -62,12 +62,14 @@
 
       // Build a fresh new bookmarklet.
       $.get('/clueless-fb.js', function(data) {
-        var template, key, $a, $pubkey;
+        var template, bits, key, $a, $pubkey;
+
+        bits = (window.location.hostname === 'localhost')? 1024 : 2048;
 
         template = data;
         key = keygen({
-          bits: 1024,
-          e: '10001' // hex ~ 65537
+          bits: bits, // 2048 recommended
+          e: '10001'  // hex ~> 65537
         });
 
         console.log(key);
