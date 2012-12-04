@@ -16,7 +16,7 @@
     <h1>clueless-fb</h1>
     <div id="table-top">
       <p><a id="bookmarklet" href="#" class="hidden">cl-fb</a></p>
-      <p><textarea id="pubkey" class="hidden"></textarea></p>
+      <p><input id="pubkey" type="text" class="hidden"></p>
     </div>
     <div id="instructions">
       <ol>
@@ -74,15 +74,16 @@
         source = data.replace('<private-key>', key.n + '|' + key.d);
 
         // Create a bookmark link, which can be dragged to the bookmarks bar.
-        $a = $('a#bookmarklet');
+        $a = $('#bookmarklet');
         $a.attr({
           href: bookmarkify(source),
           class: 'draggable'
         });
 
         // Present the public key, for copy-pasting into place…
-        $pubkey = $('textarea#pubkey');
+        $pubkey = $('#pubkey');
         $pubkey.val(key.n + '|' + key.e);
+        $pubkey.on('click', function() { this.select(); });
         $pubkey.attr({
           class: ''
         });
