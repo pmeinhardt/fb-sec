@@ -78,7 +78,11 @@
         });
 
         // Fill out the bookmarklet template.
-        source = data.replace('<private-key>', key.n + '|' + key.d);
+        source = data.replace('<private-key>', [
+          key.n.toString(16),
+          key.e.toString(16),
+          key.d.toString(16)
+        ].join('|'));
 
         // Create a bookmark link, which can be dragged to the bookmarks bar.
         $a = $('#bookmarklet');
@@ -86,7 +90,7 @@
 
         // Present the public key, for copy-pasting into place…
         $pubkey = $('#pubkey');
-        $pubkey.val(key.n + '|' + key.e);
+        $pubkey.val(key.n.toString(16) + '|' + key.e.toString(16));
         $pubkey.on('click', function() { this.select(); });
 
         // Done. Show the results, hide the spinner.

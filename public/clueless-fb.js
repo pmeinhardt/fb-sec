@@ -11,7 +11,17 @@
     username: url.pathname.match(/^\/messages\/(.+)$/)[1]
   };
 
-  var encrypt = function(msg, key) {};
+  var encrypt = function(msg, key) {
+    var rsa = new RSAKey();
+    key = key.split('|');
+    rsa.setPublic(key[0], key[1]);
+    return rsa.encrypt(msg);
+  };
 
-  var decrypt = function(msg, key) {};
+  var decrypt = function(msg, key) {
+    var rsa = new RSAKey();
+    key = key.split('|');
+    rsa.setPrivate(key[0], key[1], key[2]);
+    return rsa.decrypt(msg);
+  };
 })(window, '<private-key>');
