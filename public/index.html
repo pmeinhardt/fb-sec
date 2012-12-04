@@ -27,12 +27,19 @@
   </div>
 
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+  <script src="/lib/jsbn.js"></script>
+  <script src="/lib/jsbn2.js"></script>
+  <script src="/lib/prng4.js"></script>
+  <script src="/lib/rng.js"></script>
+  <script src="/lib/rsa.js"></script>
+  <script src="/lib/rsa2.js"></script>
   <script>
     $(function() {
       // Generate a public-private key pair used for asymmetric enryption.
-      var keygen = function() {
-        var keys = [1, 2];
-        return keys;
+      var keygen = function(options) {
+        var key = new RSAKey();
+        key.generate(options.bits, options.e);
+        return key;
       };
 
       // Encode a string of JavaScript for use as a bookmarklet. See:
@@ -55,10 +62,15 @@
 
       // Build a fresh new bookmarklet.
       $.get('/clueless-fb.js', function(data) {
-        var template, keys, $a, $pubkey;
+        var template, key, $a, $pubkey;
 
         template = data;
-        keys = keygen();
+        key = keygen({
+          bits: 1024,
+          e: '10001' // hex ~ 65537
+        });
+
+        console.log(key);
 
         // Create a bookmark link, which can be dragged to the bookmarks bar.
         $a = $('a#bookmarklet');
@@ -69,7 +81,7 @@
 
         // Present the public key, for copy-pasting into place…
         $pubkey = $('textarea#pubkey');
-        $pubkey.val(keys[1]);
+        // $pubkey.val(key.);
         $pubkey.attr({
           class: ''
         });
