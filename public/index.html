@@ -105,7 +105,7 @@
 
         // Present the public key, for copy-pasting into place…
         $pubkey = $('#pubkey');
-        $pubkey.val(pubkey(key));
+        $pubkey.val('[[cfbkey:' + pubkey(key) + ']]');
         $pubkey.on('click', function() { this.select(); });
 
         // Done. Show the results, hide the spinner.
