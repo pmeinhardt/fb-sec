@@ -33,6 +33,13 @@
   // Alias Zepto as $ within the local scope.
   var $ = Zepto;
 
+  // Debug and error helpers.
+  var error = function(msg) { console.error('clueless-fb error: ' + msg); };
+
+  // Validate key format.
+
+  var validate = function(key) { return /^[0-9a-f]+\|[0-9a-e]+$/.test(key); };
+
   // Encrypt and decrypt messages using a serialized public or private key.
 
   var encrypt = function(msg, key) {
@@ -51,9 +58,33 @@
 
   // Analyze the page.
 
-  var friend = {
-    username: env.location.pathname.match(/^\/messages\/(.+)$/)[1]
+  var friendname = env.location.pathname.match(/^\/messages\/(.+)$/)[1];
+
+  var pubkey = function(username, cb) {
+    $.get('/' + username + '/info', function(info) {
+      var key = info.match(/\[\[cfbkey\:([^\]]+)\]\]/);
+
+      if (!key) {
+        return cb('public key of "' + username + '" not found', false);
+      }
+
+      key = key[0];
+      key = key.replace(/^\[\[cfbkey\:/, '');
+      key = key.replace(/\]\]$/, '');
+      key = key.replace(/<[^>]*>/g, '');
+
+      if (!validate(key)) {
+        return cb('invalid public key format for "' + username + '"', false);
+      }
+
+      return cb(key, true);
+    });
   };
+
+  pubkey(friendname, function(res, success) {
+    if (success) console.log(res);
+    else error(res);
+  });
 
   // find encrypted messages on the page + who they're from
   // replace encrypted text with that decrypted with friends pubkey
