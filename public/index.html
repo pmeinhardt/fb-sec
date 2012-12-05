@@ -45,6 +45,25 @@
         return key;
       };
 
+      // Export the public key data from a generated key.
+      var pubkey = function(key) {
+        var pub = [
+          key.n.toString(16),
+          key.e.toString(16)
+        ].join('|');
+        return pub;
+      };
+
+      // Export the private key data from a generated key.
+      var privkey = function(key) {
+        var priv = [
+          key.n.toString(16),
+          key.e.toString(16),
+          key.d.toString(16)
+        ].join('|');
+        return priv;
+      };
+
       // Encode a string of JavaScript for use as a bookmarklet. See:
       // http://daringfireball.net/2007/03/javascript_bookmarklet_builder
       var bookmarkify = function(script) {
@@ -78,11 +97,7 @@
         });
 
         // Fill out the bookmarklet template.
-        source = data.replace('<private-key>', [
-          key.n.toString(16),
-          key.e.toString(16),
-          key.d.toString(16)
-        ].join('|'));
+        source = data.replace('<private-key>', privkey(key));
 
         // Create a bookmark link, which can be dragged to the bookmarks bar.
         $a = $('#bookmarklet');
@@ -90,7 +105,7 @@
 
         // Present the public key, for copy-pasting into place…
         $pubkey = $('#pubkey');
-        $pubkey.val(key.n.toString(16) + '|' + key.e.toString(16));
+        $pubkey.val(pubkey(key));
         $pubkey.on('click', function() { this.select(); });
 
         // Done. Show the results, hide the spinner.
