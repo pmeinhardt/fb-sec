@@ -81,7 +81,7 @@
     });
   };
 
-  pubkey('paul.meinhardt', function(res, success) {
+  pubkey(friendname, function(res, success) {
     var $input, $icon, img;
     if (success) {
       $input = $('textarea[name=message_body]');
