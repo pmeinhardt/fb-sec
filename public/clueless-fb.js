@@ -81,15 +81,15 @@
     });
   };
 
-  pubkey(friendname, function(res, success) {
+  pubkey('paul.meinhardt', function(res, success) {
     var $input, $icon, img;
     if (success) {
       $input = $('textarea[name=message_body]');
-      $input.on('keydown', function(e) {
+      $.event.add($input.parent()[0], 'keydown', function(e) {
         if (e.keyCode !== 13) return true;
         $input.val(encrypt($input.val(), res));
         return true;
-      });
+      }, null, null, true);
       $icon = $('a.emoteTogglerImg');
       $icon.css('background', 'url(http://www.google.com/help/hc/images/chrome_95440e.gif)');
       $icon.css('background-position', '0 0');
