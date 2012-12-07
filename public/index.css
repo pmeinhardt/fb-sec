@@ -1,0 +1,98 @@
+body {
+  background: #f0f0f0;
+  color: #444;
+  font: normal 12px 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+h1, p {
+  text-shadow: 0 1px 0 #fff;
+}
+
+h2 {
+  font-size: 18px;
+  margin: 6px 0;
+}
+
+a, a:link {
+  color: #3b5998;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+img {
+  max-width: 100%;
+}
+
+.hidden {
+  display: none;
+}
+
+.container {
+  margin: 48px auto;
+  width: 310px;
+}
+
+.bookmark {
+  text-align: center;
+  background: #ddd;
+  border-top: 1px solid #ccc;
+  border-radius: 4px;
+  display: block;
+  padding: 16px;
+}
+
+.draggable {
+  cursor: move;
+}
+
+.pubkey {
+  background: #ddd;
+  border: 0;
+  border-top: 1px solid #ccc;
+  border-radius: 4px;
+  color: #444;
+  font-weight: bold;
+  display: block;
+  line-height: 28px;
+  padding: 0 4px;
+  vertical-align: middle;
+  width: 302px;
+}
+
+.instructions {
+  background: #f8f8f8;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin: 22px 0;
+  padding: 8px;
+}
+
+.instructions ol {
+  padding-left: 28px;
+}
+
+.instructions ol li {
+  margin: 4px 0;
+}
+
+ol.steps {
+  list-style: none outside;
+  padding: 0;
+}
+
+ol.steps li {
+  background: #f8f8f8;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  padding: 8px;
+}
+
+.footer {
+  padding: 6px 4px 0;
+}

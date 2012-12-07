@@ -3,39 +3,58 @@
 <head>
   <meta charset="utf-8">
   <title>clueless-fb</title>
-  <style>
-    body { font: normal 12px/18px Helvetica, Arial, sans-serif; }
-
-    .hidden { display: none; }
-
-    .draggable { cursor: move; }
-  </style>
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="stylesheet" href="normalize.min.css">
+  <link rel="stylesheet" href="index.css">
 </head>
 <body>
-  <div class="wrapper">
-    <h1>clueless-fb</h1>
-    <div id="spinner">
-      <!-- css-animated activity indicator -->
+  <div class="container">
+    <div class="hero-unit">
+      <h1>clueless-fb</h1>
     </div>
-    <div id="results" class="hidden">
-      <p><a id="bookmarklet" href="#" class="draggable">cl-fb</a></p>
-      <p><input id="pubkey" type="text"></p>
+    <div class="keys">
+      <p>
+        <a id="bookmarklet" href="#" class="bookmark draggable">
+          <img src="img/key.png">
+        </a>
+      </p>
+      <p>
+        <input id="pubkey" class="pubkey" type="text">
+      </p>
     </div>
-    <div id="instructions">
+    <div class="instructions">
+      <h2>Usage</h2>
       <ol>
-        <li>Drag the link to your bookmarks bar</li>
-        <li>Then copy the pubkey…</li>
+        <li>Install the bookmarklet by dragging the symbol above to the bookmarks bar</li>
+        <li>Copy the public key from the text field</li>
+        <li>Go to your Facebook profile's <a href="https://www.facebook.com/me/info" target="blank">"About" page</a></li>
+        <li>Paste it there, so that others can send you encrypted messages</li>
+        <li>Before <a href="https://www.facebook.com/messages/">reading/writing messages on Facebook</a>, click the bookmark</li>
       </ol>
+    </div>
+    <ol class="steps">
+      <li><img src="img/step-0.jpg" title="Install the bookmarklet by dragging it to the bookmarks bar"></li>
+      <li><img src="img/step-1.jpg" title="Go to your Facebook 'About' page"></li>
+      <li><img src="img/step-2.jpg" title="Paste the public key into the 'Quotations' section of your about page so that others can send you encrypted messages"></li>
+      <li><img src="img/step-3.jpg" title=""></li>
+      <li><img src="img/step-4.jpg" title=""></li>
+    </ol>
+    <div class="footer">
+      <p>
+        <a href="https://github.com/pmeinhardt/clueless-fb">project on github</a>
+      </p>
     </div>
   </div>
 
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+
   <script src="/lib/jsbn.js"></script>
   <script src="/lib/jsbn2.js"></script>
   <script src="/lib/prng4.js"></script>
   <script src="/lib/rng.js"></script>
   <script src="/lib/rsa.js"></script>
   <script src="/lib/rsa2.js"></script>
+
   <script>
     $(function() {
       // Generate a public-private key pair used for asymmetric enryption.
@@ -84,7 +103,7 @@
 
       // Build a fresh new bookmarklet.
       $.get('/clueless-fb.js', function(data) {
-        var source, bits, key, $spinner, $results, $a, $pubkey;
+        var source, bits, key, $a, $pubkey;
 
         // Use a shorter key size for local development.
         bits = (window.location.hostname === 'localhost')? 1024 : 2048;
@@ -107,10 +126,6 @@
         $pubkey = $('#pubkey');
         $pubkey.val('[[cfbkey:' + pubkey(key) + ']]');
         $pubkey.on('click', function() { this.select(); });
-
-        // Done. Show the results, hide the spinner.
-        $spinner = $('#spinner').addClass('hidden');
-        $results = $('#results').removeClass('hidden');
       });
     });
   </script>
