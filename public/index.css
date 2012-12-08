@@ -1,13 +1,17 @@
 body {
   background: #f0f0f0;
   color: #444;
-  font: normal 12px 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font: normal 12px 'Lucida Grande', Tahoma, Verdana, Arial, sans-serif;
   margin: 0;
   padding: 0;
 }
 
 h1, p {
   text-shadow: 0 1px 0 #fff;
+}
+
+h1 {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 h2 {
@@ -41,6 +45,7 @@ img {
   text-align: center;
   background: #ddd;
   border-top: 1px solid #ccc;
+  border-bottom: 1px solid #f4f4f4;
   border-radius: 4px;
   display: block;
   padding: 16px;
@@ -51,12 +56,12 @@ img {
 }
 
 .pubkey {
-  background: #ddd;
+  background: #fcfcfc;
   border: 0;
-  border-top: 1px solid #ccc;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #eee;
   border-radius: 4px;
   color: #3b5998;
-  font-weight: bold;
   display: block;
   line-height: 28px;
   padding: 0 4px;
