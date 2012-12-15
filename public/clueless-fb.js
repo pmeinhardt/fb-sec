@@ -1,4 +1,4 @@
-(function(env, key) {
+(function(env, key, pubkey) {
   // Perform a "sanity check" - i.e. check that we're on Facebook really
   // and do not execute any other code, if we're on a different page.
 
@@ -34,9 +34,10 @@
   var $ = Zepto;
 
   // Debug and error helpers.
+
   var error = function(msg) { console.error('clueless-fb error: ' + msg); };
 
-  // Validate key format.
+  // Validate public key format.
 
   var validate = function(key) { return /^[0-9a-f]+\|[0-9a-e]+$/.test(key); };
 
@@ -56,11 +57,9 @@
     return rsa.decrypt(msg);
   };
 
-  // Analyze the page.
+  // Read the public key from a friend's about page.
 
-  var friendname = env.location.pathname.match(/^\/messages\/(.+)$/)[1];
-
-  var pubkey = function(username, cb) {
+  var readkey = function(username, cb) {
     $.get('/' + username + '/info', function(info) {
       var key = info.match(/\[\[cfbkey\:([^\]]+)\]\]/);
 
@@ -81,7 +80,69 @@
     });
   };
 
-  pubkey(friendname, function(res, success) {
+  // Read and map keys for the given usernames.
+
+  var readkeys = function(usernames, keymap, cb) {
+    var next = usernames.pop();
+    if (typeof next !== 'undefined') {
+      return readkey(next, function(res, success) {
+        keymap[next] = success ? res : null;
+        readkeys(usernames, keymap, cb);
+      });
+    }
+    return cb(keymap);
+  };
+
+  // State icons - Base64-encoded.
+
+  var icons = {
+    wait: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAqVJREFUeNrMlF9IU1Ecx7/n3rutO+fc3DTSImeEEghCsUgIJUlJK0EihNTCpHwISqie8iUjCyN86M2HniJ6KUshxIfwwawQjFLDzNlcWrnNP5u72673ntO9g6AUuj740IEfHH6/z/ny+53f7xzCGMNWLQ5buIT1joErWZ1SSD60vCAJlDISCnLkZwjUZOZYutNE3dmCmqWZxY6RqgfBa/8Uq3jXMjrd1145FkTYY4eYJmJ3MIHxWBJEN4WCFLrg2lfTNsoMy2Qyp6iASrUtAaP6CQZKKFI73a/Hdc6wTFDGiwLMSRWcyoJpisKbkrJsiyY5klhb42SSm7BZYNY5YzGwRLcP4WOZAbd16kmeIq1YufmPB/mlRWJL2xGzlt/xd/s8YZ0z7mbliRft9Wdvd07sCpC9V/28LUfmbbkxc07JAit/PN015fnWocV1bmMe2pz9aWgbBG68ElHQ4K19yXq/xphv5HXfWL+PDZf2sB7NX5mKa9z6sxszU2Tt9pU4ahsnnl6s6qAyRD6/ei7fDtvg5eMPNf9QKq5zhmXKki5owpvhPWi5Xy+r2kgoEEJxSGi8dRRLgf2puM4ZihHOjLfDxahuaI22Flb8di/GEZ28VFyGvLImhGePpDhDsf7nJTh/8/qXc3lFgRXM2wRQhwDZLUKZjSDwudlThMMXmrUJrNnEnCnueB3xvh96pGY6ndvjvClDCs8Vrq5KhFKKObOVReqavPYDz4Zw76SBmKJQfwTLovTBQ4RsTmEms/Ljk2ttNUK058DMDidmVppmdG4TQ2vhXC5wI967EwXpENNN2BlTMSnIWiOiIEHtVvMzYdU5Q7FTGQOne8+UZnxf5i3jAsdrj1taiPMuwlEiWhjsIkXQoW6rdfhLNLzrr979t5/jLwEGAGdyREumDDfSAAAAAElFTkSuQmCC',
+    secure: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAVRJREFUeNrMVL1OwzAYvPwVJWoHmjXAO9AXSB8BiZ+BGQlWYEEwgliAp4CBv6kdgZQNCZWdLhASdkpREztxQhwKU9ogqChezv4sn+58ny3EcYxhDRFDHHK/Dc/zrOOTU7PZvIMkiWAsQqUyjYX5uYaqqtWsM0KWTU60vbNrjhUUlErFr3qn8wZCA2xtbmQSZtq8uLyCKACKIsNxnhFFSJGveb1Wq3/fZuu+ZZbL47CfHKyvrTYMw6i6rmvt7R+YU5MTCbFr/igATvSJuq6ntUfb/n2amqqlyAPJDaBLu9bK+bJJAprfBpKEw8UjYeCdcaKlmVkEUYiAUVBGQEMKwjGdk3R+e/MwOACtoPH7iYuaBj/0ISa9hZAhlkJEIe81pGmKQjyiF9AmLyDcTqKOo8+8xH5vzT5wNMpe/XZfRX5P7d8rU2QZZ/Xr/JMZiQr/9nN8F2AAiUS3+1HmitoAAAAASUVORK5CYII=',
+    insecure: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAe5JREFUeNqsVEFLAlEQHte1lNKUAr14Eq0oROhSt5UQYm9dAg/9Hv+BP8FDl25LUvA62F2EojToEAjqioKGZuo2M7jbWmoeHBiGmXnz7cz7Zp/DMAxYlciLku12W1QqFej3++B2uyEajYLf70/OO++Y11mpVBKapilerxc8Hg/0ej3odDqgqup9PB6fCSjNCpbLZZHP55VIJAI+n49jZMmnOOWXBisUCkooFKIxYTgcQiwWg263yz7FKb80WL1eBxpPlmW4UFU4PjyEdDoNzWaT45QnGeKdkv5LQCAQgNTJCbyenbF/IAQEg0FwOp1sCeQxmVQmOSEjMdIylH8Ui4CF3GU4HGZLQBSfyyaugMhms8pgMGCfOqBC6o4KNxIJ2Lu+hufzc8vHru5lc10IzFSkX2QyGUPXddZGo2HgPRkD1GIiYTzgcVPJ/2q1hL1+akxczKT5gdFoxEyS6p+f3JFd0P/paBGbv2VnfZ1Hswv6ip3JuWDUjSlbkgRPp6fWHR29vbGdkDIFuLCz7bU1eE6lLKD9uzvQXS62swBn7hmxOR6PYWtzk30q3L29hZdqleN11NjNjbWDS70aDXwtqAuSd/yV7HKlaXCJa8EgEyL+gLlwjFwuZ/m0ayS1Wm3qHP0Jv9l0rPJxlGCF8i3AADmpHMkwJcraAAAAAElFTkSuQmCC',
+    warn: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAbpJREFUeNrclE0vA1EUht/bNkhsJDNSG/6DBVE0Klg2JOIjFiQSS39BxFZi5Rf4Bb6KNG0uIUKCSNgg4mvTqZZI0a87c907Uy3pDBZi4WZOZubOmfc8c86bIZxz/NZy4RfX34npL3GqbYxwbW2I6+lH+q2a7JldsNckjYUGOYvPmhFbHeDsWaNO+TKI3QAEiVlHbWoCZ7fmHvE0ILG3Y156g4s/+0z2dAalbYZCz5ZnswwU3xRliSNbsTIybaXPomppN6muD05wd3oJ/1gQpKIeiei6RTe09TUZSx5DaZ2m4LpDg3VxpKF0zQm6w7LHno83yd0peQqovo5ir4o6YEDuCrVdPbiPTAbkXt3wrjOZ4hNUOvtEUuqHoDIYDCMHkktB7Z6nX/ZMW+7lqs9vURWEJNG7EEgeEGJwq3iI7sA7ekJsycSEKAyRDOOT0M3hObYXwiUhy87mZM137Mi00ABXm4Wv8jfORLKUkS74rgaP4X14xy9I+QBcAtJdDULqLTIuxXJCTIpIwYxJRFyVVr67ytlneuqOJiITAXBRyMiCZ1MgwgZgWStsltK/tOlRGjsdTfs//2dvAgwAvFAXfcP7Q4EAAAAASUVORK5CYII='
+  };
+
+  var status = function(state) {
+    var $icon = $('a.emoteTogglerImg');
+    $icon.css('background', 'url(' + icons[state] + ')');
+    $icon.css('background-position', '2px 4px');
+  };
+
+  status('wait');
+
+  // Analyze the page.
+
+  var friends = (function() {
+    var conversation, names;
+    conversation = env.location.pathname.match(/^\/messages\/(.+)$/)[1];
+    if (/^conversation-id/.test(conversation)) {
+      names = $('._2n8 ._2od ._8m a').map(function() {
+        return this.href.match(/([^\/]+)$/)[0];
+      });
+    } else {
+      names = [conversation];
+    }
+    return names;
+  })();
+
+  // TODO: Add sender themselves
+
+  var keymap = {};
+
+  readkeys(friends, keymap, function(map) {
+    // TODO
+  });
+
+  // Decrypt messages encrypted with this user's public key on the page.
+
+  // find cl-messages, discard all that are not encrypted for the current user
+
+  // Ensure new messages are encrypted before sending.
+
+  // Note: Every secured message is encrypted for all conversation partners,
+  // including the sender.
+
+  readkey(friends[0], function(res, success) {
     var $input, $icon, img;
     if (success) {
       $input = $('textarea[name=message_body]');
@@ -90,17 +151,11 @@
         $input.val(encrypt($input.val(), res));
         return true;
       }, null, null, true);
-      $icon = $('a.emoteTogglerImg');
-      $icon.css('background', 'url(http://www.google.com/help/hc/images/chrome_95440e.gif)');
-      $icon.css('background-position', '0 0');
-      $icon.css('margin-top', '2px');
+      status('secure');
     } else {
       error(res);
+      status('insecure');
       alert('Conversation could not be secured');
     }
   });
-
-  // find encrypted messages on the page + who they're from
-  // replace encrypted text with that decrypted with friends pubkey
-  // find textareas for writing -> replace/offer safe input
-})(window, '<private-key>');
+})(window, '<private-key>', '<public-key>');
