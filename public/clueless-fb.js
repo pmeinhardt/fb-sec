@@ -173,6 +173,8 @@
       return names;
     })();
 
+    // TODO: add sender themselves so you can read your own messages later
+
     // Decrypt messages encrypted with this user's public key on the page.
 
     // TODO: find cl-messages, discard all that are not encrypted for the current user
@@ -184,14 +186,15 @@
     // including the sender.
 
     this.readkeys(friends, function(map, missing) {
-      console.log(map, missing);
       if (missing.length === 0) {
         $.event.add(cfb.$input.parent()[0], 'keydown', function(e) {
           if (e.keyCode !== 13 || e.shiftKey) return true;
-          // var msg = cfb.$input.val();
-          // for each map[username]:
-          //   var val = cfb.$input.val();
-          //   cfb.$input.val(val + '\n' + cfb.encrypt(msg, map[username]));
+          var msg = cfb.$input.val();
+          cfb.$input.val('');
+          friends.forEach(function(username) {
+            var val = cfb.$input.val();
+            cfb.$input.val(val + '\n[[cfbmsg:' + username + '|' + cfb.encrypt(msg, map[username]) + ']]');
+          });
           return true;
         }, null, null, true);
         cfb.status(cfb.states.secure);
