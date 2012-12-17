@@ -195,13 +195,10 @@
           return true;
         }, null, null, true);
         cfb.status(cfb.states.secure);
-      } else if (missing.length < friends.length) {
-        cfb.status(cfb.states.warn);
-        alert('Not everyone in this conversation has made a public key available');
-        cfb.invite(missing);
       } else {
         cfb.status(cfb.states.insecure);
-        alert('Conversation could not be secured');
+        alert('Not everyone in this conversation has made a public key available');
+        cfb.invite(missing);
       }
     });
   };
