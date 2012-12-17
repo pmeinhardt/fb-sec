@@ -10,6 +10,8 @@
 
   if (!sane) return;
 
+  // ---
+
   // Below jsbn.js, prng4.js, rng.js and rsa.js have been compiled with
   // https://developers.google.com/closure/compiler/
 
@@ -33,38 +35,34 @@
   // Alias Zepto as $ within the local scope.
   var $ = Zepto;
 
-  // Debug and error helpers.
+  // ---
 
-  var error = function(msg) { console.error('clueless-fb error: ' + msg); };
+  var cfb = {};
+
+  // DOM elements.
+
+  cfb.$input = null;
+
+  cfb.$icon = null;
+
+  // Key map - maps friend names to public keys.
+
+  cfb.keymap = {};
 
   // Validate public key format.
 
-  var validate = function(key) { return /^[0-9a-f]+\|[0-9a-e]+$/.test(key); };
-
-  // Encrypt and decrypt messages using a serialized public or private key.
-
-  var encrypt = function(msg, key) {
-    var rsa = new RSAKey();
-    key = key.split('|');
-    rsa.setPublic(key[0], key[1]);
-    return rsa.encrypt(msg);
-  };
-
-  var decrypt = function(msg, key) {
-    var rsa = new RSAKey();
-    key = key.split('|');
-    rsa.setPrivate(key[0], key[1], key[2]);
-    return rsa.decrypt(msg);
-  };
+  cfb.validate = function(key) { return /^[0-9a-f]+\|[0-9a-e]+$/.test(key); };
 
   // Read the public key from a friend's about page.
 
-  var readkey = function(username, cb) {
+  cfb.readkey = function(username, cb) {
+    var self = this;
     $.get('/' + username + '/info', function(info) {
       var key = info.match(/\[\[cfbkey\:([^\]]+)\]\]/);
 
       if (!key) {
-        return cb('public key of "' + username + '" not found', false);
+        self.error('public key of "' + username + '" not found');
+        return cb(null, false);
       }
 
       key = key[0];
@@ -72,8 +70,9 @@
       key = key.replace(/\]\]$/, '');
       key = key.replace(/<[^>]*>/g, '');
 
-      if (!validate(key)) {
-        return cb('invalid public key format for "' + username + '"', false);
+      if (!self.validate(key)) {
+        self.error('invalid public key format for "' + username + '"');
+        return cb(null, false);
       }
 
       return cb(key, true);
@@ -82,80 +81,132 @@
 
   // Read and map keys for the given usernames.
 
-  var readkeys = function(usernames, keymap, cb) {
-    var next = usernames.pop();
-    if (typeof next !== 'undefined') {
-      return readkey(next, function(res, success) {
-        keymap[next] = success ? res : null;
-        readkeys(usernames, keymap, cb);
+  cfb.readkeys = function(usernames, cb) {
+    var self, map, missing;
+
+    self    = this;
+    map     = this.keymap;
+    missing = [];
+
+    var fetch = function(i) {
+      var name = usernames[i];
+      if (i === usernames.length) return cb(map, missing);
+      if (map[name]) return fetch(i + 1);
+      self.readkey(name, function(key, success) {
+        if (success) {
+          map[name] = key;
+        } else {
+          missing.push(name);
+          map[name] = null;
+        }
+        fetch(i + 1);
       });
-    }
-    return cb(keymap);
+    };
+
+    fetch(0);
   };
 
-  // State icons - Base64-encoded.
+  // Encrypt and decrypt messages using a serialized public or private key.
 
-  var icons = {
-    wait: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAqVJREFUeNrMlF9IU1Ecx7/n3rutO+fc3DTSImeEEghCsUgIJUlJK0EihNTCpHwISqie8iUjCyN86M2HniJ6KUshxIfwwawQjFLDzNlcWrnNP5u72673ntO9g6AUuj740IEfHH6/z/ny+53f7xzCGMNWLQ5buIT1joErWZ1SSD60vCAJlDISCnLkZwjUZOZYutNE3dmCmqWZxY6RqgfBa/8Uq3jXMjrd1145FkTYY4eYJmJ3MIHxWBJEN4WCFLrg2lfTNsoMy2Qyp6iASrUtAaP6CQZKKFI73a/Hdc6wTFDGiwLMSRWcyoJpisKbkrJsiyY5klhb42SSm7BZYNY5YzGwRLcP4WOZAbd16kmeIq1YufmPB/mlRWJL2xGzlt/xd/s8YZ0z7mbliRft9Wdvd07sCpC9V/28LUfmbbkxc07JAit/PN015fnWocV1bmMe2pz9aWgbBG68ElHQ4K19yXq/xphv5HXfWL+PDZf2sB7NX5mKa9z6sxszU2Tt9pU4ahsnnl6s6qAyRD6/ei7fDtvg5eMPNf9QKq5zhmXKki5owpvhPWi5Xy+r2kgoEEJxSGi8dRRLgf2puM4ZihHOjLfDxahuaI22Flb8di/GEZ28VFyGvLImhGePpDhDsf7nJTh/8/qXc3lFgRXM2wRQhwDZLUKZjSDwudlThMMXmrUJrNnEnCnueB3xvh96pGY6ndvjvClDCs8Vrq5KhFKKObOVReqavPYDz4Zw76SBmKJQfwTLovTBQ4RsTmEms/Ljk2ttNUK058DMDidmVppmdG4TQ2vhXC5wI967EwXpENNN2BlTMSnIWiOiIEHtVvMzYdU5Q7FTGQOne8+UZnxf5i3jAsdrj1taiPMuwlEiWhjsIkXQoW6rdfhLNLzrr979t5/jLwEGAGdyREumDDfSAAAAAElFTkSuQmCC',
-    secure: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAVRJREFUeNrMVL1OwzAYvPwVJWoHmjXAO9AXSB8BiZ+BGQlWYEEwgliAp4CBv6kdgZQNCZWdLhASdkpREztxQhwKU9ogqChezv4sn+58ny3EcYxhDRFDHHK/Dc/zrOOTU7PZvIMkiWAsQqUyjYX5uYaqqtWsM0KWTU60vbNrjhUUlErFr3qn8wZCA2xtbmQSZtq8uLyCKACKIsNxnhFFSJGveb1Wq3/fZuu+ZZbL47CfHKyvrTYMw6i6rmvt7R+YU5MTCbFr/igATvSJuq6ntUfb/n2amqqlyAPJDaBLu9bK+bJJAprfBpKEw8UjYeCdcaKlmVkEUYiAUVBGQEMKwjGdk3R+e/MwOACtoPH7iYuaBj/0ISa9hZAhlkJEIe81pGmKQjyiF9AmLyDcTqKOo8+8xH5vzT5wNMpe/XZfRX5P7d8rU2QZZ/Xr/JMZiQr/9nN8F2AAiUS3+1HmitoAAAAASUVORK5CYII=',
-    insecure: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAe5JREFUeNqsVEFLAlEQHte1lNKUAr14Eq0oROhSt5UQYm9dAg/9Hv+BP8FDl25LUvA62F2EojToEAjqioKGZuo2M7jbWmoeHBiGmXnz7cz7Zp/DMAxYlciLku12W1QqFej3++B2uyEajYLf70/OO++Y11mpVBKapilerxc8Hg/0ej3odDqgqup9PB6fCSjNCpbLZZHP55VIJAI+n49jZMmnOOWXBisUCkooFKIxYTgcQiwWg263yz7FKb80WL1eBxpPlmW4UFU4PjyEdDoNzWaT45QnGeKdkv5LQCAQgNTJCbyenbF/IAQEg0FwOp1sCeQxmVQmOSEjMdIylH8Ui4CF3GU4HGZLQBSfyyaugMhms8pgMGCfOqBC6o4KNxIJ2Lu+hufzc8vHru5lc10IzFSkX2QyGUPXddZGo2HgPRkD1GIiYTzgcVPJ/2q1hL1+akxczKT5gdFoxEyS6p+f3JFd0P/paBGbv2VnfZ1Hswv6ip3JuWDUjSlbkgRPp6fWHR29vbGdkDIFuLCz7bU1eE6lLKD9uzvQXS62swBn7hmxOR6PYWtzk30q3L29hZdqleN11NjNjbWDS70aDXwtqAuSd/yV7HKlaXCJa8EgEyL+gLlwjFwuZ/m0ayS1Wm3qHP0Jv9l0rPJxlGCF8i3AADmpHMkwJcraAAAAAElFTkSuQmCC',
-    warn: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAbpJREFUeNrclE0vA1EUht/bNkhsJDNSG/6DBVE0Klg2JOIjFiQSS39BxFZi5Rf4Bb6KNG0uIUKCSNgg4mvTqZZI0a87c907Uy3pDBZi4WZOZubOmfc8c86bIZxz/NZy4RfX34npL3GqbYxwbW2I6+lH+q2a7JldsNckjYUGOYvPmhFbHeDsWaNO+TKI3QAEiVlHbWoCZ7fmHvE0ILG3Y156g4s/+0z2dAalbYZCz5ZnswwU3xRliSNbsTIybaXPomppN6muD05wd3oJ/1gQpKIeiei6RTe09TUZSx5DaZ2m4LpDg3VxpKF0zQm6w7LHno83yd0peQqovo5ir4o6YEDuCrVdPbiPTAbkXt3wrjOZ4hNUOvtEUuqHoDIYDCMHkktB7Z6nX/ZMW+7lqs9vURWEJNG7EEgeEGJwq3iI7sA7ekJsycSEKAyRDOOT0M3hObYXwiUhy87mZM137Mi00ABXm4Wv8jfORLKUkS74rgaP4X14xy9I+QBcAtJdDULqLTIuxXJCTIpIwYxJRFyVVr67ytlneuqOJiITAXBRyMiCZ1MgwgZgWStsltK/tOlRGjsdTfs//2dvAgwAvFAXfcP7Q4EAAAAASUVORK5CYII='
+  cfb.encrypt = function(msg, key) {
+    var rsa = new RSAKey();
+    key = key.split('|');
+    rsa.setPublic(key[0], key[1]);
+    return rsa.encrypt(msg);
   };
 
-  var status = function(state) {
-    var $icon = $('a.emoteTogglerImg');
-    $icon.css('background', 'url(' + icons[state] + ')');
-    $icon.css('background-position', '2px 4px');
+  cfb.decrypt = function(msg, key) {
+    var rsa = new RSAKey();
+    key = key.split('|');
+    rsa.setPrivate(key[0], key[1], key[2]);
+    return rsa.decrypt(msg);
   };
 
-  status('wait');
+  // States - icons Base64-encoded.
 
-  // Analyze the page.
+  cfb.states = {
+    wait:     { icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAqVJREFUeNrMlF9IU1Ecx7/n3rutO+fc3DTSImeEEghCsUgIJUlJK0EihNTCpHwISqie8iUjCyN86M2HniJ6KUshxIfwwawQjFLDzNlcWrnNP5u72673ntO9g6AUuj740IEfHH6/z/ny+53f7xzCGMNWLQ5buIT1joErWZ1SSD60vCAJlDISCnLkZwjUZOZYutNE3dmCmqWZxY6RqgfBa/8Uq3jXMjrd1145FkTYY4eYJmJ3MIHxWBJEN4WCFLrg2lfTNsoMy2Qyp6iASrUtAaP6CQZKKFI73a/Hdc6wTFDGiwLMSRWcyoJpisKbkrJsiyY5klhb42SSm7BZYNY5YzGwRLcP4WOZAbd16kmeIq1YufmPB/mlRWJL2xGzlt/xd/s8YZ0z7mbliRft9Wdvd07sCpC9V/28LUfmbbkxc07JAit/PN015fnWocV1bmMe2pz9aWgbBG68ElHQ4K19yXq/xphv5HXfWL+PDZf2sB7NX5mKa9z6sxszU2Tt9pU4ahsnnl6s6qAyRD6/ei7fDtvg5eMPNf9QKq5zhmXKki5owpvhPWi5Xy+r2kgoEEJxSGi8dRRLgf2puM4ZihHOjLfDxahuaI22Flb8di/GEZ28VFyGvLImhGePpDhDsf7nJTh/8/qXc3lFgRXM2wRQhwDZLUKZjSDwudlThMMXmrUJrNnEnCnueB3xvh96pGY6ndvjvClDCs8Vrq5KhFKKObOVReqavPYDz4Zw76SBmKJQfwTLovTBQ4RsTmEms/Ljk2ttNUK058DMDidmVppmdG4TQ2vhXC5wI967EwXpENNN2BlTMSnIWiOiIEHtVvMzYdU5Q7FTGQOne8+UZnxf5i3jAsdrj1taiPMuwlEiWhjsIkXQoW6rdfhLNLzrr979t5/jLwEGAGdyREumDDfSAAAAAElFTkSuQmCC' },
+    secure:   { icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAVRJREFUeNrMVL1OwzAYvPwVJWoHmjXAO9AXSB8BiZ+BGQlWYEEwgliAp4CBv6kdgZQNCZWdLhASdkpREztxQhwKU9ogqChezv4sn+58ny3EcYxhDRFDHHK/Dc/zrOOTU7PZvIMkiWAsQqUyjYX5uYaqqtWsM0KWTU60vbNrjhUUlErFr3qn8wZCA2xtbmQSZtq8uLyCKACKIsNxnhFFSJGveb1Wq3/fZuu+ZZbL47CfHKyvrTYMw6i6rmvt7R+YU5MTCbFr/igATvSJuq6ntUfb/n2amqqlyAPJDaBLu9bK+bJJAprfBpKEw8UjYeCdcaKlmVkEUYiAUVBGQEMKwjGdk3R+e/MwOACtoPH7iYuaBj/0ISa9hZAhlkJEIe81pGmKQjyiF9AmLyDcTqKOo8+8xH5vzT5wNMpe/XZfRX5P7d8rU2QZZ/Xr/JMZiQr/9nN8F2AAiUS3+1HmitoAAAAASUVORK5CYII=' },
+    insecure: { icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAe5JREFUeNqsVEFLAlEQHte1lNKUAr14Eq0oROhSt5UQYm9dAg/9Hv+BP8FDl25LUvA62F2EojToEAjqioKGZuo2M7jbWmoeHBiGmXnz7cz7Zp/DMAxYlciLku12W1QqFej3++B2uyEajYLf70/OO++Y11mpVBKapilerxc8Hg/0ej3odDqgqup9PB6fCSjNCpbLZZHP55VIJAI+n49jZMmnOOWXBisUCkooFKIxYTgcQiwWg263yz7FKb80WL1eBxpPlmW4UFU4PjyEdDoNzWaT45QnGeKdkv5LQCAQgNTJCbyenbF/IAQEg0FwOp1sCeQxmVQmOSEjMdIylH8Ui4CF3GU4HGZLQBSfyyaugMhms8pgMGCfOqBC6o4KNxIJ2Lu+hufzc8vHru5lc10IzFSkX2QyGUPXddZGo2HgPRkD1GIiYTzgcVPJ/2q1hL1+akxczKT5gdFoxEyS6p+f3JFd0P/paBGbv2VnfZ1Hswv6ip3JuWDUjSlbkgRPp6fWHR29vbGdkDIFuLCz7bU1eE6lLKD9uzvQXS62swBn7hmxOR6PYWtzk30q3L29hZdqleN11NjNjbWDS70aDXwtqAuSd/yV7HKlaXCJa8EgEyL+gLlwjFwuZ/m0ayS1Wm3qHP0Jv9l0rPJxlGCF8i3AADmpHMkwJcraAAAAAElFTkSuQmCC' },
+    warn:     { icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAbpJREFUeNrclE0vA1EUht/bNkhsJDNSG/6DBVE0Klg2JOIjFiQSS39BxFZi5Rf4Bb6KNG0uIUKCSNgg4mvTqZZI0a87c907Uy3pDBZi4WZOZubOmfc8c86bIZxz/NZy4RfX34npL3GqbYxwbW2I6+lH+q2a7JldsNckjYUGOYvPmhFbHeDsWaNO+TKI3QAEiVlHbWoCZ7fmHvE0ILG3Y156g4s/+0z2dAalbYZCz5ZnswwU3xRliSNbsTIybaXPomppN6muD05wd3oJ/1gQpKIeiei6RTe09TUZSx5DaZ2m4LpDg3VxpKF0zQm6w7LHno83yd0peQqovo5ir4o6YEDuCrVdPbiPTAbkXt3wrjOZ4hNUOvtEUuqHoDIYDCMHkktB7Z6nX/ZMW+7lqs9vURWEJNG7EEgeEGJwq3iI7sA7ekJsycSEKAyRDOOT0M3hObYXwiUhy87mZM137Mi00ABXm4Wv8jfORLKUkS74rgaP4X14xy9I+QBcAtJdDULqLTIuxXJCTIpIwYxJRFyVVr67ytlneuqOJiITAXBRyMiCZ1MgwgZgWStsltK/tOlRGjsdTfs//2dvAgwAvFAXfcP7Q4EAAAAASUVORK5CYII=' }
+  };
 
-  var friends = (function() {
-    var conversation, names;
-    conversation = env.location.pathname.match(/^\/messages\/(.+)$/)[1];
-    if (/^conversation-id/.test(conversation)) {
-      names = $('._2n8 ._2od ._8m a').map(function() {
-        return this.href.match(/([^\/]+)$/)[0];
-      });
-    } else {
-      names = [conversation];
-    }
-    return names;
-  })();
+  // User feedback.
 
-  // TODO: Add sender themselves
+  cfb.status = function(state) {
+    this.$icon.css('background', 'url(' + state.icon + ')');
+    this.$icon.css('background-position', '2px 4px');
+  };
 
-  var keymap = {};
+  cfb.invite = function(usernames) {
+    var url = 'https://clueless-fb.herokuapp.com';
+    this.$input.val(usernames.join(', ') + ', you should get clueless-fb ' +
+      'so we can exchange encrypted messages. Visit ' + url + ' to get it');
+  };
 
-  readkeys(friends, keymap, function(map) {
-    // TODO
-  });
+  // Debug and error helpers.
 
-  // Decrypt messages encrypted with this user's public key on the page.
+  cfb.error = function(msg) { console.error('clueless-fb error: ' + msg); };
 
-  // find cl-messages, discard all that are not encrypted for the current user
+  cfb.log = function(msg) { console.log('clueless-fb: ' + msg); };
 
-  // Ensure new messages are encrypted before sending.
+  // Initialize.
 
-  // Note: Every secured message is encrypted for all conversation partners,
-  // including the sender.
+  cfb.init = function() {
+    this.$input = $('textarea[name=message_body]');
+    this.$icon = $('a.emoteTogglerImg');
 
-  readkey(friends[0], function(res, success) {
-    var $input, $icon, img;
-    if (success) {
-      $input = $('textarea[name=message_body]');
-      $.event.add($input.parent()[0], 'keydown', function(e) {
-        if (e.keyCode !== 13) return true;
-        $input.val(encrypt($input.val(), res));
-        return true;
-      }, null, null, true);
-      status('secure');
-    } else {
-      error(res);
-      status('insecure');
-      alert('Conversation could not be secured');
-    }
-  });
+    this.status(cfb.states.wait);
+
+    // Analyze the page.
+
+    var friends = (function() {
+      var conversation, names;
+      conversation = env.location.pathname.match(/^\/messages\/(.+)$/)[1];
+      if (/^conversation-id/.test(conversation)) {
+        names = $('._2n8 ._2od ._8m a').map(function() {
+          return this.href.match(/([^\/]+)$/)[0];
+        });
+      } else {
+        names = [conversation];
+      }
+      return names;
+    })();
+
+    // Decrypt messages encrypted with this user's public key on the page.
+
+    // TODO: find cl-messages, discard all that are not encrypted for the current user
+    // ...
+
+    // Ensure new messages are encrypted before sending.
+
+    // Note: Every secured message is encrypted for all conversation partners,
+    // including the sender.
+
+    this.readkeys(friends, function(map, missing) {
+      console.log(map, missing);
+      if (missing.length === 0) {
+        $.event.add(cfb.$input.parent()[0], 'keydown', function(e) {
+          if (e.keyCode !== 13 || e.shiftKey) return true;
+          // var msg = cfb.$input.val();
+          // for each map[username]:
+          //   var val = cfb.$input.val();
+          //   cfb.$input.val(val + '\n' + cfb.encrypt(msg, map[username]));
+          return true;
+        }, null, null, true);
+        cfb.status(cfb.states.secure);
+      } else if (missing.length < friends.length) {
+        cfb.status(cfb.states.warn);
+        alert('Not everyone in this conversation has made a public key available');
+        cfb.invite(missing);
+      } else {
+        cfb.status(cfb.states.insecure);
+        alert('Conversation could not be secured');
+      }
+    });
+  };
+
+  // Go.
+
+  cfb.init();
 })(window, '<private-key>', '<public-key>');

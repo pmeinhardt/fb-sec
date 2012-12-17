@@ -15,7 +15,7 @@
     <div class="keys">
       <p>
         <a id="bookmarklet" href="#" class="bookmark draggable">
-          <img src="img/key.png">
+          <img src="img/key.png" alt="Secure FB">
         </a>
       </p>
       <p>
@@ -128,7 +128,7 @@
         // Present the public key, for copy-pasting into place…
         $pubkey = $('#pubkey');
         $pubkey.val('[[cfbkey:' + pubkey(key) + ']]');
-        $pubkey.on('click', function() { this.select(); });
+        $pubkey.on('click', function() { $(this).select(); });
       });
     });
   </script>
