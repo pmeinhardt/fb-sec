@@ -1,6 +1,8 @@
 # fb-sec
 
-…
+Private messages should be private. Even when sent through Facebook. We aim to accomplish just that.
+
+*Disclaimer: This project is still a very early beta or rather a proof of concept.*
 
 ## Usage
 
@@ -34,6 +36,8 @@ The core principle of fb-sec is its use of [public-key cryptography](http://en.w
     * a *private key*, which has to be kept secret,
     * and a *public key*, which can be published anywhere.
   * A message encrypted with a user's public key, can only be decrypted with the corresponding private key.
+
+This means, that not even Facebook (nor anyone else except the person you're writing to) can read your messages.
 
 Currently fb-sec uses the [RSA](http://en.wikipedia.org/wiki/RSA_\(algorithm\)) asymmetric key algorithm.
 
