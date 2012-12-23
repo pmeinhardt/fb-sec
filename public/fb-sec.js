@@ -180,6 +180,8 @@
     })();
 
     // TODO: add sender themselves so you can read your own messages later
+    // var me = ;
+    // friends.push(me);
 
     this.readkeys(friends, function(map, missing) {
       // Decrypt messages encrypted with this user's public key on the page,
@@ -188,7 +190,7 @@
       $('#webMessengerRecentMessages p').html(function(i, content) {
         var matcher = /\[\[fbsmsg\:([^|]+)\|([a-zA-Z0-9]+)\]\]/g;
         return content.replace(matcher, function(match, name, msg) {
-          return map[name] ? fbs.decrypt(msg, map[name]) : match;
+          return name === me ? fbs.decrypt(msg, key) : '';
         });
       });
 
