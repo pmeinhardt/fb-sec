@@ -8,25 +8,21 @@ Private messages should be private. Even when sent through Facebook. We aim to a
 
 To obtain your personal *fb-sec bookmarklet* and *public key*, visit the [fb-sec homepage](https://fb-sec.herokuapp.com/) and follow the instructions there. Basically:
 
-1. Install the bookmarklet by dragging the symbol above to the bookmarks bar
+1. Install the bookmarklet by dragging the key symbol to the bookmarks bar and copy the public key from the text field
 
   ![Step 0](https://raw.github.com/pmeinhardt/fb-sec/master/public/img/step-0.jpg "Install the bookmarklet by dragging it to the bookmarks bar")
 
-2. Copy the public key from the text field
+2. Go to your Facebook profile's ["About" page](https://www.facebook.com/me/info)
 
   ![Step 1](https://raw.github.com/pmeinhardt/fb-sec/master/public/img/step-1.jpg "Go to your Facebook 'About' page")
 
-3. Go to your Facebook profile's ["About" page](https://www.facebook.com/me/info)
+3. Paste the public there, so that others can send you encrypted messages
 
   ![Step 2](https://raw.github.com/pmeinhardt/fb-sec/master/public/img/step-2.jpg "Paste the public key into the 'Quotations' section of your about page so that others can send you encrypted messages")
 
-4. Paste it there, so that others can send you encrypted messages
+4. Before [reading/writing messages on Facebook](https://www.facebook.com/messages/), click the bookmark
 
-  ![Step 3](https://raw.github.com/pmeinhardt/fb-sec/master/public/img/step-3.jpg "Install the bookmarklet by dragging it to the bookmarks bar")
-
-5. Before [reading/writing messages on Facebook](https://www.facebook.com/messages/), click the bookmark
-
-  ![Step 4](https://raw.github.com/pmeinhardt/fb-sec/master/public/img/step-4.jpg "Install the bookmarklet by dragging it to the bookmarks bar")
+  ![Step 3](https://raw.github.com/pmeinhardt/fb-sec/master/public/img/step-3.jpg "…")
 
 ## How it works
 
@@ -39,7 +35,7 @@ The core principle of fb-sec is its use of [public-key cryptography](http://en.w
 
 This means, that not even Facebook (nor anyone else except the person you're writing to) can read your messages.
 
-Currently fb-sec uses the [RSA](http://en.wikipedia.org/wiki/RSA_\(algorithm\)) asymmetric key algorithm.
+Currently fb-sec uses the [RSA](http://en.wikipedia.org/wiki/RSA_\(algorithm\)) asymmetric key algorithm. Keys are generated in your browser, so no one else has knowledge about your personal key pair.
 
 Before any message is sent to a Facebook server, fb-sec encrypts it with the public keys of your friends. Their public keys are simply published on their [Facebook profile's info page](https://www.facebook.com/me/info) and thus accessible to the bookmarklet.
 
