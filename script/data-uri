@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+require 'base64'
+require 'rack/mime'
+
+Dir[*ARGV].each do |path|
+  code = Base64.strict_encode64(File.read(path))
+  mime = Rack::Mime.mime_type(File.extname(path))
+  puts "#{path}: data:#{mime};base64,#{code}"
+end
