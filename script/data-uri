@@ -3,6 +3,11 @@
 require 'base64'
 require 'rack/mime'
 
+if ARGV.empty?
+  puts "usage: #{File.basename($0)} [glob ...]"
+  exit 0
+end
+
 Dir[*ARGV].each do |path|
   code = Base64.strict_encode64(File.read(path))
   mime = Rack::Mime.mime_type(File.extname(path))
