@@ -181,17 +181,22 @@
 
     // TODO: add sender themselves so you can read your own messages later
 
-    // Decrypt messages encrypted with this user's public key on the page.
-
-    // TODO: find cl-messages, discard all that are not encrypted for the current user
-    // ...
-
-    // Ensure new messages are encrypted before sending.
-
-    // Note: Every secured message is encrypted for all conversation partners,
-    // including the sender.
-
     this.readkeys(friends, function(map, missing) {
+      // Decrypt messages encrypted with this user's public key on the page,
+      // discard all that are not encrypted for the current user
+
+      $('#webMessengerRecentMessages p').html(function(i, content) {
+        var matcher = /\[\[fbsmsg\:([^|]+)\|([a-zA-Z0-9]+)\]\]/g;
+        return content.replace(matcher, function(match, name, msg) {
+          return map[name] ? fbs.decrypt(msg, map[name]) : match;
+        });
+      });
+
+      // Ensure new messages are encrypted before sending.
+
+      // Note: Every secured message is encrypted for all conversation partners,
+      // including the sender.
+
       if (missing.length === 0) {
         $.event.add(fbs.$input.parent()[0], 'keydown', function(e) {
           if (e.keyCode !== 13 || e.shiftKey) return true;
