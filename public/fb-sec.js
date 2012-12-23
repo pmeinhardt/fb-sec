@@ -37,28 +37,28 @@
 
   // ---
 
-  var cfb = {};
+  var fbs = {};
 
   // DOM elements.
 
-  cfb.$input = null;
+  fbs.$input = null;
 
-  cfb.$icon = null;
+  fbs.$icon = null;
 
   // Key map - maps friend names to public keys.
 
-  cfb.keymap = {};
+  fbs.keymap = {};
 
   // Validate public key format.
 
-  cfb.validate = function(key) { return /^[0-9a-f]+\|[0-9a-e]+$/.test(key); };
+  fbs.validate = function(key) { return /^[0-9a-f]+\|[0-9a-e]+$/.test(key); };
 
   // Read the public key from a friend's about page.
 
-  cfb.readkey = function(username, cb) {
+  fbs.readkey = function(username, cb) {
     var self = this;
     $.get('/' + username + '/info', function(info) {
-      var key = info.match(/\[\[cfbkey\:([^\]]+)\]\]/);
+      var key = info.match(/\[\[fbskey\:([^\]]+)\]\]/);
 
       if (!key) {
         self.error('public key of "' + username + '" not found');
@@ -66,7 +66,7 @@
       }
 
       key = key[0];
-      key = key.replace(/^\[\[cfbkey\:/, '');
+      key = key.replace(/^\[\[fbskey\:/, '');
       key = key.replace(/\]\]$/, '');
       key = key.replace(/<[^>]*>/g, '');
 
@@ -81,7 +81,7 @@
 
   // Read and map keys for the given usernames.
 
-  cfb.readkeys = function(usernames, cb) {
+  fbs.readkeys = function(usernames, cb) {
     var self, map, missing;
 
     self    = this;
@@ -108,14 +108,14 @@
 
   // Encrypt and decrypt messages using a serialized public or private key.
 
-  cfb.encrypt = function(msg, key) {
+  fbs.encrypt = function(msg, key) {
     var rsa = new RSAKey();
     key = key.split('|');
     rsa.setPublic(key[0], key[1]);
     return rsa.encrypt(msg);
   };
 
-  cfb.decrypt = function(msg, key) {
+  fbs.decrypt = function(msg, key) {
     var rsa = new RSAKey();
     key = key.split('|');
     rsa.setPrivate(key[0], key[1], key[2]);
@@ -124,7 +124,7 @@
 
   // States - icons Base64-encoded.
 
-  cfb.states = {
+  fbs.states = {
     wait:     { icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAqVJREFUeNrMlF9IU1Ecx7/n3rutO+fc3DTSImeEEghCsUgIJUlJK0EihNTCpHwISqie8iUjCyN86M2HniJ6KUshxIfwwawQjFLDzNlcWrnNP5u72673ntO9g6AUuj740IEfHH6/z/ny+53f7xzCGMNWLQ5buIT1joErWZ1SSD60vCAJlDISCnLkZwjUZOZYutNE3dmCmqWZxY6RqgfBa/8Uq3jXMjrd1145FkTYY4eYJmJ3MIHxWBJEN4WCFLrg2lfTNsoMy2Qyp6iASrUtAaP6CQZKKFI73a/Hdc6wTFDGiwLMSRWcyoJpisKbkrJsiyY5klhb42SSm7BZYNY5YzGwRLcP4WOZAbd16kmeIq1YufmPB/mlRWJL2xGzlt/xd/s8YZ0z7mbliRft9Wdvd07sCpC9V/28LUfmbbkxc07JAit/PN015fnWocV1bmMe2pz9aWgbBG68ElHQ4K19yXq/xphv5HXfWL+PDZf2sB7NX5mKa9z6sxszU2Tt9pU4ahsnnl6s6qAyRD6/ei7fDtvg5eMPNf9QKq5zhmXKki5owpvhPWi5Xy+r2kgoEEJxSGi8dRRLgf2puM4ZihHOjLfDxahuaI22Flb8di/GEZ28VFyGvLImhGePpDhDsf7nJTh/8/qXc3lFgRXM2wRQhwDZLUKZjSDwudlThMMXmrUJrNnEnCnueB3xvh96pGY6ndvjvClDCs8Vrq5KhFKKObOVReqavPYDz4Zw76SBmKJQfwTLovTBQ4RsTmEms/Ljk2ttNUK058DMDidmVppmdG4TQ2vhXC5wI967EwXpENNN2BlTMSnIWiOiIEHtVvMzYdU5Q7FTGQOne8+UZnxf5i3jAsdrj1taiPMuwlEiWhjsIkXQoW6rdfhLNLzrr979t5/jLwEGAGdyREumDDfSAAAAAElFTkSuQmCC' },
     secure:   { icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAVRJREFUeNrMVL1OwzAYvPwVJWoHmjXAO9AXSB8BiZ+BGQlWYEEwgliAp4CBv6kdgZQNCZWdLhASdkpREztxQhwKU9ogqChezv4sn+58ny3EcYxhDRFDHHK/Dc/zrOOTU7PZvIMkiWAsQqUyjYX5uYaqqtWsM0KWTU60vbNrjhUUlErFr3qn8wZCA2xtbmQSZtq8uLyCKACKIsNxnhFFSJGveb1Wq3/fZuu+ZZbL47CfHKyvrTYMw6i6rmvt7R+YU5MTCbFr/igATvSJuq6ntUfb/n2amqqlyAPJDaBLu9bK+bJJAprfBpKEw8UjYeCdcaKlmVkEUYiAUVBGQEMKwjGdk3R+e/MwOACtoPH7iYuaBj/0ISa9hZAhlkJEIe81pGmKQjyiF9AmLyDcTqKOo8+8xH5vzT5wNMpe/XZfRX5P7d8rU2QZZ/Xr/JMZiQr/9nN8F2AAiUS3+1HmitoAAAAASUVORK5CYII=' },
     insecure: { icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAe5JREFUeNqsVEFLAlEQHte1lNKUAr14Eq0oROhSt5UQYm9dAg/9Hv+BP8FDl25LUvA62F2EojToEAjqioKGZuo2M7jbWmoeHBiGmXnz7cz7Zp/DMAxYlciLku12W1QqFej3++B2uyEajYLf70/OO++Y11mpVBKapilerxc8Hg/0ej3odDqgqup9PB6fCSjNCpbLZZHP55VIJAI+n49jZMmnOOWXBisUCkooFKIxYTgcQiwWg263yz7FKb80WL1eBxpPlmW4UFU4PjyEdDoNzWaT45QnGeKdkv5LQCAQgNTJCbyenbF/IAQEg0FwOp1sCeQxmVQmOSEjMdIylH8Ui4CF3GU4HGZLQBSfyyaugMhms8pgMGCfOqBC6o4KNxIJ2Lu+hufzc8vHru5lc10IzFSkX2QyGUPXddZGo2HgPRkD1GIiYTzgcVPJ/2q1hL1+akxczKT5gdFoxEyS6p+f3JFd0P/paBGbv2VnfZ1Hswv6ip3JuWDUjSlbkgRPp6fWHR29vbGdkDIFuLCz7bU1eE6lLKD9uzvQXS62swBn7hmxOR6PYWtzk30q3L29hZdqleN11NjNjbWDS70aDXwtqAuSd/yV7HKlaXCJa8EgEyL+gLlwjFwuZ/m0ayS1Wm3qHP0Jv9l0rPJxlGCF8i3AADmpHMkwJcraAAAAAElFTkSuQmCC' },
@@ -133,30 +133,30 @@
 
   // User feedback.
 
-  cfb.status = function(state) {
+  fbs.status = function(state) {
     this.$icon.css('background', 'url(' + state.icon + ')');
     this.$icon.css('background-position', '2px 4px');
   };
 
-  cfb.invite = function(usernames) {
-    var url = 'https://clueless-fb.herokuapp.com';
-    this.$input.val(usernames.join(', ') + ', you should get clueless-fb ' +
+  fbs.invite = function(usernames) {
+    var url = 'https://fb-sec.herokuapp.com';
+    this.$input.val(usernames.join(', ') + ', you should get fb-sec ' +
       'so we can exchange encrypted messages. Visit ' + url + ' to get it');
   };
 
   // Debug and error helpers.
 
-  cfb.error = function(msg) { console.error('clueless-fb error: ' + msg); };
+  fbs.error = function(msg) { console.error('fb-sec error: ' + msg); };
 
-  cfb.log = function(msg) { console.log('clueless-fb: ' + msg); };
+  fbs.log = function(msg) { console.log('fb-sec: ' + msg); };
 
   // Initialize.
 
-  cfb.init = function() {
+  fbs.init = function() {
     this.$input = $('textarea[name=message_body]');
     this.$icon = $('a.emoteTogglerImg');
 
-    this.status(cfb.states.wait);
+    this.status(fbs.states.wait);
 
     // Analyze the page.
 
@@ -187,26 +187,26 @@
 
     this.readkeys(friends, function(map, missing) {
       if (missing.length === 0) {
-        $.event.add(cfb.$input.parent()[0], 'keydown', function(e) {
+        $.event.add(fbs.$input.parent()[0], 'keydown', function(e) {
           if (e.keyCode !== 13 || e.shiftKey) return true;
-          var msg = cfb.$input.val();
-          cfb.$input.val('');
+          var msg = fbs.$input.val();
+          fbs.$input.val('');
           friends.forEach(function(username) {
-            var val = cfb.$input.val();
-            cfb.$input.val(val + '\n[[cfbmsg:' + username + '|' + cfb.encrypt(msg, map[username]) + ']]');
+            var val = fbs.$input.val();
+            fbs.$input.val(val + '\n[[fbsmsg:' + username + '|' + fbs.encrypt(msg, map[username]) + ']]');
           });
           return true;
         }, null, null, true);
-        cfb.status(cfb.states.secure);
+        fbs.status(fbs.states.secure);
       } else {
-        cfb.status(cfb.states.insecure);
+        fbs.status(fbs.states.insecure);
         alert('Not everyone in this conversation has made a public key available');
-        cfb.invite(missing);
+        fbs.invite(missing);
       }
     });
   };
 
   // Go.
 
-  cfb.init();
+  fbs.init();
 })(window, '<private-key>', '<public-key>');

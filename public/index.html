@@ -2,7 +2,7 @@
 <html>
 <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# website: http://ogp.me/ns/website#">
   <meta charset="utf-8">
-  <title>clueless-fb</title>
+  <title>fb-sec | private facebook messaging</title>
   <link rel="shortcut icon" href="favicon.ico">
   <link rel="stylesheet" href="normalize.min.css">
   <link rel="stylesheet" href="index.css">
@@ -10,15 +10,15 @@
   <meta property="fb:admins" content="100000860233059">
   <meta property="fb:admins" content="1075045038">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://clueless-fb.herokuapp.com/">
-  <meta property="og:image" content="https://clueless-fb.herokuapp.com/img/fb-preview.jpg">
+  <meta property="og:url" content="https://fb-sec.herokuapp.com/">
+  <meta property="og:image" content="https://fb-sec.herokuapp.com/img/fb-preview.jpg">
   <meta property="og:title" content="Exchange encrypted Facebook messages">
   <meta property="og:description" content="Don't want Facebook to read your private messages? Here's a simple solution.">
 </head>
 <body>
   <div class="container">
     <div class="hero-unit">
-      <h1>clueless-fb</h1>
+      <h1>fb-sec</h1>
     </div>
     <div class="keys">
       <p>
@@ -49,12 +49,12 @@
     </ol>
     <div class="footer">
       <p>
-        <a href="https://github.com/pmeinhardt/clueless-fb">project on github</a> | <a href="http://thenounproject.com/noun/key/#icon-No655">key icon</a>
+        <a href="https://github.com/pmeinhardt/fb-sec">project on github</a> | <a href="http://thenounproject.com/noun/key/#icon-No655">key icon</a>
       </p>
     </div>
   </div>
 
-  <a href="https://github.com/pmeinhardt/clueless-fb"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
+  <a href="https://github.com/pmeinhardt/fb-sec"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
 
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 
@@ -112,7 +112,7 @@
       };
 
       // Build a fresh new bookmarklet.
-      $.get('/clueless-fb.js', function(data) {
+      $.get('/fb-sec.js', function(data) {
         var source, bits, key, $a, $pubkey;
 
         // Use a shorter key size for local development.
@@ -135,7 +135,7 @@
 
         // Present the public key, for copy-pasting into place…
         $pubkey = $('#pubkey');
-        $pubkey.val('[[cfbkey:' + pubkey(key) + ']]');
+        $pubkey.val('[[fbskey:' + pubkey(key) + ']]');
         $pubkey.on('click', function() { $(this).select(); });
       });
     });
