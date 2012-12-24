@@ -179,9 +179,13 @@
       return names;
     })();
 
-    // TODO: add sender themselves so you can read your own messages later
-    // var me = ;
-    // friends.push(me);
+    // Add sender themselves so you can read your own messages later.
+    var me = (function() {
+      var href = $('#pageNav a[title=Profile]').attr('href');
+      return href.match(/\/([^/?]+)[^/]+$/)[1];
+    })();
+
+    friends.push(me);
 
     this.readkeys(friends, function(map, missing) {
       // Decrypt messages encrypted with this user's public key on the page,
