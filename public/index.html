@@ -57,13 +57,7 @@
   <a href="https://github.com/pmeinhardt/fb-sec"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
 
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-
-  <script src="/lib/jsbn.js"></script>
-  <script src="/lib/jsbn2.js"></script>
-  <script src="/lib/prng4.js"></script>
-  <script src="/lib/rng.js"></script>
-  <script src="/lib/rsa.js"></script>
-  <script src="/lib/rsa2.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/yepnope/1.5.4/yepnope.min.js"></script>
 
   <script>
     // Test non-web-worker version:
@@ -130,16 +124,28 @@
           worker.onmessage = function(e) { keyready(e.data); };
           worker.postMessage(options);
         } else {
-          var keygen = function(options) {
-            var key = new RSAKey();
-            key.generate(options.bits, options.e);
-            return key;
-          };
-          var key = keygen(options);
-          keyready({
-            n: key.n.toString(16),
-            e: key.e.toString(16),
-            d: key.d.toString(16)
+          yepnope({
+            load: [
+              '/lib/jsbn.js',
+              '/lib/jsbn2.js',
+              '/lib/prng4.js',
+              '/lib/rng.js',
+              '/lib/rsa.js',
+              '/lib/rsa2.js'
+            ],
+            complete: function() {
+              var keygen = function(options) {
+                var key = new RSAKey();
+                key.generate(options.bits, options.e);
+                return key;
+              };
+              var key = keygen(options);
+              keyready({
+                n: key.n.toString(16),
+                e: key.e.toString(16),
+                d: key.d.toString(16)
+              });
+            }
           });
         }
       });
