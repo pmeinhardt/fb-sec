@@ -66,32 +66,15 @@
   <script src="/lib/rsa2.js"></script>
 
   <script>
-    $(function() {
-      // Generate a public-private key pair used for asymmetric enryption.
-      var keygen = function(options) {
-        var key = new RSAKey();
-        key.generate(options.bits, options.e);
-        return key;
-      };
+    // Test non-web-worker version:
+    // window.Worker = undefined;
 
+    $(function() {
       // Export the public key data from a generated key.
-      var pubkey = function(key) {
-        var pub = [
-          key.n.toString(16),
-          key.e.toString(16)
-        ].join('|');
-        return pub;
-      };
+      var pubkey = function(key) { return [key.n, key.e].join('|'); };
 
       // Export the private key data from a generated key.
-      var privkey = function(key) {
-        var priv = [
-          key.n.toString(16),
-          key.e.toString(16),
-          key.d.toString(16)
-        ].join('|');
-        return priv;
-      };
+      var privkey = function(key) { return [key.n, key.e, key.d].join('|'); };
 
       // Encode a string of JavaScript for use as a bookmarklet. See:
       // http://daringfireball.net/2007/03/javascript_bookmarklet_builder
@@ -111,32 +94,54 @@
         return 'javascript:' + bookmark.join('');
       };
 
-      // Build a fresh new bookmarklet.
+      // Build a fresh new bookmarklet from our template.
       $.get('/fb-sec.js', function(data) {
-        var source, bits, key, $a, $pubkey;
+        // Output the bookmarklet and public key to the DOM once done.
+        var keyready = function(key) {
+          var source, $a, $pubkey;
+
+          // Fill out the bookmarklet template.
+          source = data.replace('<public-key>', pubkey(key));
+          source = data.replace('<private-key>', privkey(key));
+
+          // Create a bookmark link, which can be dragged to the bookmarks bar.
+          $a = $('#bookmarklet');
+          $a.attr({href: bookmarkify(source)});
+
+          // Present the public key, for copy-pasting into place…
+          $pubkey = $('#pubkey');
+          $pubkey.val('[[fbskey:' + pubkey(key) + ']]');
+          $pubkey.on('click', function() { $(this).select(); });
+        };
 
         // Use a shorter key size for local development.
         bits = (window.location.hostname === 'localhost')? 1024 : 2048;
 
         // Generate a secure public-private key pair. Refer to the README for
         // for documentation on the chosen key generation parameter values.
-        key = keygen({
+        var options = {
           bits: bits, // 2048 recommended
           e: '10001'  // hex ~> 65537
-        });
+        };
 
-        // Fill out the bookmarklet template.
-        source = data.replace('<public-key>', pubkey(key));
-        source = data.replace('<private-key>', privkey(key));
-
-        // Create a bookmark link, which can be dragged to the bookmarks bar.
-        $a = $('#bookmarklet');
-        $a.attr({href: bookmarkify(source)});
-
-        // Present the public key, for copy-pasting into place…
-        $pubkey = $('#pubkey');
-        $pubkey.val('[[fbskey:' + pubkey(key) + ']]');
-        $pubkey.on('click', function() { $(this).select(); });
+        // Use a web worker to compute a key in the background, if possible.
+        if (typeof window.Worker !== 'undefined') {
+          var worker = new Worker('keygen.js');
+          worker.onmessage = function(e) { keyready(e.data); };
+          worker.postMessage(options);
+        } else {
+          var keygen = function(options) {
+            var key = new RSAKey();
+            key.generate(options.bits, options.e);
+            return key;
+          };
+          var key = keygen(options);
+          keyready({
+            n: key.n.toString(16),
+            e: key.e.toString(16),
+            d: key.d.toString(16)
+          });
+        }
       });
     });
   </script>
