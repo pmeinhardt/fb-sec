@@ -60,10 +60,10 @@
   <script src="//cdnjs.cloudflare.com/ajax/libs/yepnope/1.5.4/yepnope.min.js"></script>
 
   <script>
-    // Test non-web-worker version:
-    // window.Worker = undefined;
-
     $(function() {
+      // Test non-web-worker version:
+      // window.Worker = undefined;
+
       // Export the public key data from a generated key.
       var pubkey = function(key) { return [key.n, key.e].join('|'); };
 
