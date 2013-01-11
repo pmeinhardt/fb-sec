@@ -102,7 +102,7 @@
 
           // Fill out the bookmarklet template.
           source = data.replace('<public-key>', pubkey(key));
-          source = data.replace('<private-key>', privkey(key));
+          source = source.replace('<private-key>', privkey(key));
 
           // Create a bookmark link, which can be dragged to the bookmarks bar.
           $a = $('#bookmarklet');
