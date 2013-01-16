@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+
+begin
+  require 'closure-compiler'
+rescue LoadError => e
+  puts e.message
+  puts "to fix: gem install 'closure-compiler'"
+  exit 1
+end
+
+if ARGV.count != 1
+  puts "usage: #{File.basename($0)} <path>"
+  exit 0
+end
+
+path = ARGV.first
+
+unless File.exists?(path)
+  puts "file not found: #{path}"
+  exit 1
+end
+
+compiler = Closure::Compiler.new
+puts compiler.compile(File.open(path))
