@@ -4,3 +4,9 @@ ruby '1.9.3'
 gem 'rack'
 gem 'rack-ssl'
 gem 'thin'
+
+group :test do
+  gem 'cucumber'
+  gem 'capybara'
+  gem 'rspec'
+end
