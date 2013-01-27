@@ -1,4 +1,5 @@
 require 'rubygems'
+require 'debugger'
 require 'capybara'
 require 'capybara/dsl'
 require 'capybara/cucumber'

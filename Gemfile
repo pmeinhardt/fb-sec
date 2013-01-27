@@ -6,6 +6,7 @@ gem 'rack-ssl'
 gem 'thin'
 
 group :test do
+  gem 'debugger'
   gem 'cucumber'
   gem 'capybara'
   gem 'rspec'
