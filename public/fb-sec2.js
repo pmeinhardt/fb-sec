@@ -27,8 +27,6 @@
   //    window.variable = 12;       => sets variable on the proxy, not globally
   //    variable == 12              => false, where it would be true
   //
-  //    window.location = '...'     => will not trigger a page load here
-  //
   // However, this way, we leave the original page's behavior untouched.
 
   var window = env;
