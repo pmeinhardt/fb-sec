@@ -1,3 +1,3 @@
-Then /^I should see "([^\"]+)"$/ do |text|
+Then /^I see "([^\"]+)"$/ do |text|
   page.should have_content(text)
 end
