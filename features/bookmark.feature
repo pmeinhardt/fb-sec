@@ -1,12 +1,13 @@
 Feature: Bookmark
 
-  @online
+  @facebook
   @javascript
   Scenario: Read and write encrypted messages on Facebook
-    Given I have a bookmarklet
-      And I have published my pubkey
-      And I go to Facebook messages
-     When I start a new conversation
+    Given I am signed in to Facebook
+      And I have a bookmarklet
+      And I have made my pubkey available
+     When I go to Facebook messages
+      And I start a new conversation
       And a conversation partner has no pubkey
       And I click the bookmarklet
      Then the message contains a hint for him

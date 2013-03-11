@@ -5,6 +5,7 @@ require 'capybara/dsl'
 require 'capybara/cucumber'
 require 'capybara/rspec'
 require 'selenium/webdriver'
+require 'koala'
 require 'rack'
 
 ENV['RACK_ENV'] ||= 'test'

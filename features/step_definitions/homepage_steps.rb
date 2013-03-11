@@ -3,12 +3,13 @@ Given /^I go to the homepage$/ do
 end
 
 Given /^I wait for the bookmark to be generated$/ do
+  timeout = 10.0
   started = Time.now
 
   begin
     find_field("pubkey").value.should_not be_empty
   rescue => e
-    raise e if (Time.now - started) > 10.0
+    raise e if (Time.now - started) > timeout
     sleep 0.1
     retry
   end
