@@ -1,0 +1,2 @@
+# Ignore the local Facebook app configuration.
+config/facebook.yml

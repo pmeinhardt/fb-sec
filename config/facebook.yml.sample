@@ -1,0 +1,4 @@
+# Configure the Facebook app used for Cucumber testing:
+# https://developers.facebook.com/apps
+app_id: "Facebook App-ID"
+secret: "Facebook App Secret"
