@@ -1,8 +1,8 @@
 # fb-sec
 
-Private messages should be private. Even when sent through Facebook. We aim to accomplish just that.
+*Note: I have concerns about potential attack vectors, which could allow Facebook to steal private keys from the bookmarklet. This would compromise the very goal of fb-sec: total confidentiality of your messages. Therefore, unfortunately, this project is discontinued.*
 
-*Disclaimer: This project is still a very early beta or rather a proof of concept.*
+Private messages should be private. Even when sent through Facebook. We aim to accomplish just that.
 
 ## Usage
 
